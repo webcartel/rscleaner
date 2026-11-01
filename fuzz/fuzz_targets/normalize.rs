@@ -7,7 +7,7 @@ use rscleaner_guard::normalize::normalize;
 use rscleaner_platform::{FakeEnv, FakeFs, FakeKnownFolders, VolumeKind};
 
 fuzz_target!(|data: &[u8]| {
-    let text = String::from_utf8_lossy(data);
+    let text = String::from_utf8_lossy(data).into_owned();
     let fs = FakeFs::new(VolumeKind::Fixed);
     let env = FakeEnv::from([
         ("HOME", "/home/me"),

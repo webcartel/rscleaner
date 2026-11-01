@@ -16,6 +16,7 @@ members = [
 ]
 exclude = [
   "crates/rscleaner-gui/src-tauri",
+  "fuzz",
 ]
 
 [workspace.package]
