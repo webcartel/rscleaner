@@ -1,0 +1,17 @@
+[package]
+name = "rscleaner-fuzz"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+libfuzzer-sys = "0.4"
+rscleaner-guard = { path = "../crates/rscleaner-guard" }
+rscleaner-platform = { path = "../crates/rscleaner-platform" }
+
+[[bin]]
+name = "normalize"
+path = "fuzz_targets/normalize.rs"
+test = false
+doc = false
+bench = false

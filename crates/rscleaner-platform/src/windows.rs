@@ -4,7 +4,7 @@ use std::ffi::{OsString, c_void};
 use std::io;
 use std::mem::size_of;
 use std::os::windows::ffi::{OsStrExt, OsStringExt};
-use std::os::windows::fs::OpenOptionsExt;
+use std::os::windows::fs::{MetadataExt, OpenOptionsExt};
 use std::os::windows::io::AsRawHandle;
 use std::path::{Path, PathBuf};
 
@@ -15,9 +15,9 @@ use windows_sys::Win32::Security::{
     GetTokenInformation, TOKEN_ELEVATION, TOKEN_QUERY, TokenElevation,
 };
 use windows_sys::Win32::Storage::FileSystem::{
-    BY_HANDLE_FILE_INFORMATION, FILE_FLAG_BACKUP_SEMANTICS, FILE_FLAG_OPEN_REPARSE_POINT,
-    GetDriveTypeW, GetFileInformationByHandle, GetLongPathNameW, MOVEFILE_DELAY_UNTIL_REBOOT,
-    MoveFileExW,
+    BY_HANDLE_FILE_INFORMATION, FILE_ATTRIBUTE_REPARSE_POINT, FILE_FLAG_BACKUP_SEMANTICS,
+    FILE_FLAG_OPEN_REPARSE_POINT, GetDriveTypeW, GetFileInformationByHandle, GetLongPathNameW,
+    MOVEFILE_DELAY_UNTIL_REBOOT, MoveFileExW, RemoveDirectoryW,
 };
 use windows_sys::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
 
@@ -46,7 +46,8 @@ impl Fs for WindowsFs {
             modified: meta.modified().ok(),
             is_dir: meta.is_dir(),
             is_file: meta.is_file(),
-            is_symlink: meta.file_type().is_symlink(),
+            is_symlink: meta.file_type().is_symlink()
+                || (meta.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT) != 0,
             readonly: meta.permissions().readonly(),
             identity,
             volume: volume_kind(path),
@@ -91,7 +92,22 @@ impl Fs for WindowsFs {
     }
 
     fn remove_dir_raw(&self, path: &Path) -> io::Result<()> {
-        std::fs::remove_dir(path)
+        let text = path.to_string_lossy();
+        let plain = text.strip_prefix("\\\\?\\").unwrap_or(&text);
+        match std::fs::remove_dir(plain) {
+            Ok(()) => Ok(()),
+            Err(first) => {
+                let wide: Vec<u16> = path
+                    .as_os_str()
+                    .encode_wide()
+                    .chain(std::iter::once(0))
+                    .collect();
+                // SAFETY: `wide` is NUL-terminated; RemoveDirectoryW removes a
+                // reparse point without traversing it.
+                let result = unsafe { RemoveDirectoryW(wide.as_ptr()) };
+                if result != 0 { Ok(()) } else { Err(first) }
+            }
+        }
     }
 
     fn trash_raw(&self, path: &Path) -> Result<(), TrashError> {
@@ -233,7 +249,8 @@ fn volume_kind(path: &Path) -> VolumeKind {
     let Some(component) = path.components().next() else {
         return VolumeKind::Other;
     };
-    let root = component.as_os_str();
+    let mut root = component.as_os_str().to_os_string();
+    root.push("\\");
     let wide: Vec<u16> = root.encode_wide().chain(std::iter::once(0)).collect();
     // SAFETY: `wide` is NUL-terminated.
     let kind = unsafe { GetDriveTypeW(wide.as_ptr()) };

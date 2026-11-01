@@ -66,10 +66,21 @@ impl FsRemover {
 
 impl Remover for FsRemover {
     fn remove(&self, path: &VerifiedPath) -> Result<(), GuardError> {
-        let result = if path.is_dir {
+        let first = if path.is_dir {
             self.fs.remove_dir_raw(path.given())
         } else {
             self.fs.remove_file_raw(path.given())
+        };
+        let result = match first {
+            Ok(()) => Ok(()),
+            Err(first_error) => {
+                let second = if path.is_dir {
+                    self.fs.remove_file_raw(path.given())
+                } else {
+                    self.fs.remove_dir_raw(path.given())
+                };
+                second.map_err(|_| first_error)
+            }
         };
         result.map_err(|error| {
             GuardError::new(
