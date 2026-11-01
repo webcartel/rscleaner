@@ -7,6 +7,11 @@ members = [
   "spikes/yaml",
   "spikes/trash",
   "spikes/typegen",
+  "crates/rscleaner-model",
+  "crates/rscleaner-platform",
+  "crates/rscleaner-rules",
+  "crates/rscleaner-i18n",
+  "crates/rscleaner-cli",
 ]
 exclude = [
   "crates/rscleaner-gui/src-tauri",
@@ -18,6 +23,21 @@ edition = "2024"
 rust-version = "1.85"
 license = "MIT"
 publish = false
+
+[workspace.dependencies]
+anyhow = "1"
+assert_cmd = "2.2.2"
+clap = { version = "4", features = ["derive"] }
+directories = "6"
+globset = "0.4"
+insta = "1.49.0"
+predicates = "3"
+schemars = "1.2.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_norway = "0.9.42"
+tempfile = "3"
+thiserror = "2"
 
 [workspace.lints.rust]
 unsafe_code = "deny"
