@@ -728,7 +728,13 @@ dependencies = [
 name = "rscleaner-platform"
 version = "0.1.0"
 dependencies = [
+ "directories",
  "rscleaner-model",
+ "rustix",
+ "sysinfo",
+ "tempfile",
+ "trash",
+ "windows-sys",
 ]
 
 [[package]]

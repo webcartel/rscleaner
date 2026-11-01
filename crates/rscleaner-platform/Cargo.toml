@@ -10,4 +10,23 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+directories.workspace = true
 rscleaner-model = { path = "../rscleaner-model" }
+trash.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+sysinfo.workspace = true
+windows-sys = { version = "0.61.2", features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_Storage_FileSystem",
+  "Win32_System_SystemInformation",
+  "Win32_System_Threading",
+] }
+
+[target.'cfg(unix)'.dependencies]
+rustix.workspace = true
+sysinfo.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
