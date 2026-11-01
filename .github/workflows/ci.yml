@@ -29,4 +29,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@nightly
       - run: cargo install cargo-fuzz --locked
-      - run: cargo +nightly fuzz run normalize -- -max_total_time=60
+      - name: Fuzz normalize
+        run: |
+          set +e
+          cargo +nightly fuzz run normalize -- -max_total_time=60 -print_final_stats=1 2>&1 | tee fuzz.log
+          code=${PIPESTATUS[0]}
+          if [ "$code" -ne 0 ]; then
+            tail_output=$(tail -c 1500 fuzz.log | tr '\n' ' ' | sed 's/%/%25/g; s/\r/ /g')
+            echo "::error::fuzz exit $code: $tail_output"
+          fi
+          exit "$code"
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-crash
+          path: fuzz/artifacts/**
