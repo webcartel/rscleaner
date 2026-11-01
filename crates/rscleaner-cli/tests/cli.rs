@@ -9,7 +9,11 @@ fn version_prints_product_and_platform() {
         .assert()
         .success()
         .stdout(predicate::str::contains("RSCleaner"))
-        .stdout(predicate::str::contains("windows"));
+        .stdout(predicate::str::contains(if cfg!(windows) {
+            "windows"
+        } else {
+            "linux"
+        }));
 }
 
 #[test]

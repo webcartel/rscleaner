@@ -117,3 +117,35 @@ fn allowed_registry_target_is_valid_on_windows() {
     };
     assert!(validate(yaml, &opts).is_empty());
 }
+
+#[test]
+fn risk_inference_does_not_depend_on_the_environment() {
+    let gradle = "schema: 1\nrules:\n  - id: dev.gradle-caches\n    name: Test\n    category: dev\n    risk: moderate\n    platforms: [windows]\n    targets:\n      - path: '${USERPROFILE}\\.gradle\\caches'\n";
+    let downloads = "schema: 1\nrules:\n  - id: downloads.old-installers\n    name: Test\n    category: downloads\n    risk: moderate\n    platforms: [windows]\n    targets:\n      - path: '${USERPROFILE}\\Downloads'\n        include: ['*.exe']\n        min_age_days: 30\n";
+    let windows_env = FakeEnv::from([("USERPROFILE", r"C:\Users\Me")]);
+
+    for env in [&FakeEnv::default(), &windows_env] {
+        let known = FakeKnownFolders::default();
+        let opts = ValidationOptions::default();
+        let gradle_file: RuleFile = serde_norway::from_str(gradle).expect("gradle fixture parses");
+        let downloads_file: RuleFile =
+            serde_norway::from_str(downloads).expect("downloads fixture parses");
+
+        let gradle_errors = validate_file_with_text(&gradle_file, gradle, env, &known, &opts);
+        assert!(
+            gradle_errors
+                .iter()
+                .all(|error| error.code != ErrorCode::RiskUnderstated),
+            "gradle cache is not user data: {gradle_errors:?}"
+        );
+
+        let downloads_errors =
+            validate_file_with_text(&downloads_file, downloads, env, &known, &opts);
+        assert!(
+            downloads_errors
+                .iter()
+                .any(|error| error.code == ErrorCode::RiskUnderstated),
+            "downloads is user data on every platform: {downloads_errors:?}"
+        );
+    }
+}

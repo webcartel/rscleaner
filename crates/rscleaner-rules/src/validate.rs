@@ -233,12 +233,31 @@ fn inferred_risk(rule: &Rule, env: &dyn Env, known: &dyn KnownFolders) -> Risk {
     risk
 }
 
+/// User data is detected from the declared path, not from the expanded one.
+///
+/// Expansion depends on the current machine, so a Windows rule checked on
+/// Linux would otherwise change risk: `${USERPROFILE}` expands on Windows and
+/// stays literal elsewhere. The name of each path component is compared
+/// instead, which gives one answer on every platform.
 fn is_user_data(path: &str) -> bool {
-    let lower = path.to_ascii_lowercase();
-    lower.contains("${known:")
-        || lower.contains("userprofile")
-        || lower.contains("/users/")
-        || lower.contains("/documents")
-        || lower.contains("/downloads")
-        || lower.contains("/desktop")
+    let lower = path.to_ascii_lowercase().replace('\\', "/");
+    if lower.contains("${known:") {
+        return true;
+    }
+    let trimmed = lower.trim_end_matches('/');
+    if trimmed == "${userprofile}" || trimmed == "%userprofile%" {
+        return true;
+    }
+    const USER_DIRS: [&str; 7] = [
+        "documents",
+        "downloads",
+        "desktop",
+        "pictures",
+        "videos",
+        "music",
+        "onedrive",
+    ];
+    trimmed
+        .split('/')
+        .any(|component| USER_DIRS.contains(&component))
 }
