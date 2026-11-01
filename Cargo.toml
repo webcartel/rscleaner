@@ -4,6 +4,7 @@ members = [
   "bench/gen",
   "bench/scan",
   "bench/delete",
+  "spikes/yaml",
 ]
 exclude = [
   "crates/rscleaner-gui/src-tauri",
