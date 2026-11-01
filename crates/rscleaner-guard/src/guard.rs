@@ -73,12 +73,6 @@ impl Guard {
             &self.cwd,
             path,
         )?;
-        if !normalized.exists {
-            return Err(GuardError::new(
-                GuardReason::NotFound,
-                format!("path does not exist: {}", normalized.given.display()),
-            ));
-        }
         let meta = match self.fs.metadata(&normalized.final_path) {
             Ok(meta) => meta,
             Err(error) => return Err(io_error(error)),
@@ -117,14 +111,14 @@ impl Guard {
             &self.cwd,
             path.given(),
         )?;
-        if !normalized.exists {
-            return Err(GuardError::new(
-                GuardReason::ChangedSinceScan,
-                format!("path disappeared: {}", path.given().display()),
-            ));
-        }
         let meta = match self.fs.metadata(&normalized.final_path) {
             Ok(meta) => meta,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {
+                return Err(GuardError::new(
+                    GuardReason::ChangedSinceScan,
+                    format!("path disappeared: {}", path.given().display()),
+                ));
+            }
             Err(error) => return Err(io_error(error)),
         };
         if meta.identity != path.identity || meta.volume != path.volume {
@@ -135,6 +129,50 @@ impl Guard {
         }
         self.check(&normalized, false)?;
         Ok(())
+    }
+
+    /// Re-check a scanned item just before it is removed and return a fresh
+    /// `VerifiedPath`. A replaced path, a link, or a newly protected path is
+    /// refused.
+    pub fn reverify_scan(
+        &self,
+        path: &Path,
+        intent: Intent,
+        ctx: &RuleCtx,
+        identity: FileIdentity,
+    ) -> Result<VerifiedPath, GuardError> {
+        let normalized = normalize(
+            self.fs.as_ref(),
+            self.env.as_ref(),
+            self.known.as_ref(),
+            &self.cwd,
+            path,
+        )?;
+        let meta = match self.fs.metadata(&normalized.final_path) {
+            Ok(meta) => meta,
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {
+                return Err(GuardError::new(
+                    GuardReason::ChangedSinceScan,
+                    format!("path disappeared: {}", path.display()),
+                ));
+            }
+            Err(error) => return Err(io_error(error)),
+        };
+        if meta.identity != identity || meta.volume != VolumeKind::Fixed {
+            return Err(GuardError::new(
+                GuardReason::ChangedSinceScan,
+                format!("path identity changed: {}", path.display()),
+            ));
+        }
+        self.check(&normalized, ctx.filtered())?;
+        Ok(VerifiedPath {
+            given: normalized.given,
+            final_path: normalized.final_path,
+            identity: meta.identity,
+            volume: meta.volume,
+            intent,
+            is_dir: meta.is_dir,
+        })
     }
 
     fn check(&self, normalized: &NormalizedPath, filtered: bool) -> Result<(), GuardError> {

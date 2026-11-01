@@ -12,6 +12,7 @@ use rscleaner_rules::paths;
 use rscleaner_rules::set::{RuleSet as Rules, select};
 use rscleaner_rules::validate::{ValidationOptions, validate_file};
 
+use crate::clean::{clean_command, open_engine, scan_command};
 use crate::cli::{Cli, Command, ConfigCommand, RulesCommand};
 
 pub fn run(cli: Cli) -> i32 {
@@ -70,6 +71,8 @@ pub fn run(cli: Cli) -> i32 {
             category.as_deref(),
             platform.as_deref(),
         ),
+        Some(Command::Scan(args)) => scan_command_flow(&cli, &config, &args, &translator),
+        Some(Command::Clean(args)) => clean_command_flow(&cli, &config, &args, &translator),
         Some(Command::Rules { command }) => match command {
             RulesCommand::Validate { paths } => validate_paths(&config, &paths),
             RulesCommand::Show { id } => show_rule(&cli, &config, &id),
@@ -78,6 +81,52 @@ pub fn run(cli: Cli) -> i32 {
             command: ConfigCommand::Path,
         }) => show_paths(cli.json),
     }
+}
+
+fn scan_command_flow(
+    cli: &Cli,
+    config: &Config,
+    args: &crate::cli::ScanArgs,
+    translator: &Translator,
+) -> i32 {
+    let set = match load_rule_set(cli, config) {
+        Ok(set) => set,
+        Err(errors) => {
+            print_errors(&errors);
+            return 2;
+        }
+    };
+    let engine = match open_engine(set, config, cli.rules_dir.as_deref()) {
+        Ok(engine) => engine,
+        Err(error) => {
+            eprintln!("{error}");
+            return 1;
+        }
+    };
+    scan_command(&engine, args, cli.json, false, translator)
+}
+
+fn clean_command_flow(
+    cli: &Cli,
+    config: &Config,
+    args: &crate::cli::CleanArgs,
+    translator: &Translator,
+) -> i32 {
+    let set = match load_rule_set(cli, config) {
+        Ok(set) => set,
+        Err(errors) => {
+            print_errors(&errors);
+            return 2;
+        }
+    };
+    let engine = match open_engine(set, config, cli.rules_dir.as_deref()) {
+        Ok(engine) => engine,
+        Err(error) => {
+            eprintln!("{error}");
+            return 1;
+        }
+    };
+    clean_command(&engine, args, cli.json, false, translator)
 }
 
 fn load_config(cli: &Cli) -> Result<Config, Vec<RuleError>> {

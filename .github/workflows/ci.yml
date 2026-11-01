@@ -16,6 +16,7 @@ jobs:
       - run: cargo clippy --workspace --all-targets -- -D warnings
       - run: cargo test --workspace --all-targets
       - run: cargo run -p rscleaner-rules --bin generate_schema -- --check schema/rule.schema.json
+      - run: cargo run -p rscleaner-report --bin generate_report_schema -- --check schema/report.schema.json
       - run: bash scripts/check-i18n-keys.sh
       - run: bash scripts/check-docs-allowlist.sh
       - run: cargo install cargo-deny --locked

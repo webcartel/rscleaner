@@ -13,6 +13,7 @@ workspace = true
 globset.workspace = true
 rscleaner-guard = { path = "../rscleaner-guard" }
 rscleaner-model = { path = "../rscleaner-model" }
+rscleaner-rules = { path = "../rscleaner-rules" }
 rscleaner-platform = { path = "../rscleaner-platform" }
 
 [dev-dependencies]

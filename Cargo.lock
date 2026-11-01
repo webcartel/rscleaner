@@ -215,6 +215,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
+name = "crossbeam-channel"
+version = "0.5.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "98b0cc327b5bc766e7fda9c9260cc0fa81b43a8e240440422dff70788e3f9ef1"
+dependencies = [
+ "crossbeam-utils",
+]
+
+[[package]]
 name = "crossbeam-deque"
 version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -774,6 +783,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d6f6ff9a378485b298a5286656da665ba74413d36db0979633275d2e708145d4"
 
 [[package]]
+name = "rscleaner-app"
+version = "0.1.0"
+dependencies = [
+ "crossbeam-channel",
+ "rscleaner-exec",
+ "rscleaner-guard",
+ "rscleaner-model",
+ "rscleaner-platform",
+ "rscleaner-report",
+ "rscleaner-rules",
+ "rscleaner-scan",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
 name = "rscleaner-bench-delete"
 version = "0.1.0"
 dependencies = [
@@ -809,13 +834,30 @@ dependencies = [
  "clap",
  "directories",
  "predicates",
+ "rscleaner-app",
+ "rscleaner-exec",
  "rscleaner-i18n",
  "rscleaner-model",
  "rscleaner-platform",
+ "rscleaner-report",
  "rscleaner-rules",
+ "rscleaner-scan",
  "serde_json",
  "serde_norway",
  "tempfile",
+]
+
+[[package]]
+name = "rscleaner-exec"
+version = "0.1.0"
+dependencies = [
+ "rscleaner-guard",
+ "rscleaner-model",
+ "rscleaner-platform",
+ "rscleaner-report",
+ "rscleaner-scan",
+ "tempfile",
+ "thiserror",
 ]
 
 [[package]]
@@ -860,6 +902,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "rscleaner-report"
+version = "0.1.0"
+dependencies = [
+ "rscleaner-model",
+ "schemars",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+]
+
+[[package]]
 name = "rscleaner-rules"
 version = "0.1.0"
 dependencies = [
@@ -883,6 +937,7 @@ dependencies = [
  "rscleaner-guard",
  "rscleaner-model",
  "rscleaner-platform",
+ "rscleaner-rules",
  "tempfile",
 ]
 

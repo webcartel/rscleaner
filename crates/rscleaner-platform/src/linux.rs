@@ -70,6 +70,11 @@ impl Fs for LinuxFs {
         std::fs::remove_dir(path)
     }
 
+    fn remove_tree_raw(&self, path: &Path) -> io::Result<()> {
+        // `remove_dir_all` never follows a symlink to a directory.
+        std::fs::remove_dir_all(path)
+    }
+
     fn trash_raw(&self, path: &Path) -> Result<(), TrashError> {
         trash::delete(path).map_err(|error| TrashError(error.to_string()))
     }

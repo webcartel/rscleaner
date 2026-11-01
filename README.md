@@ -26,8 +26,15 @@ Windows.
 cargo build --release
 cargo run -p rscleaner-cli -- version
 cargo run -p rscleaner-cli -- list
+cargo run -p rscleaner-cli -- scan
+cargo run -p rscleaner-cli -- clean --dry-run
 cargo run -p rscleaner-cli -- rules validate rules
 ```
+
+`scan` prints the plan and changes nothing. `clean` asks for confirmation and
+removes the planned items; `--dry-run` takes the same code path without
+removing anything. `--json` prints one document, `--events` prints ndjson
+events, and `--report <file>` writes the report.
 
 The GUI build will be documented after the M0 spike. The CLI and TUI do not
 depend on WebView2.

@@ -114,6 +114,12 @@ impl Fs for WindowsFs {
         trash::delete(path).map_err(|error| TrashError(error.to_string()))
     }
 
+    fn remove_tree_raw(&self, path: &Path) -> io::Result<()> {
+        // `remove_dir_all` removes a junction or symlink itself and never
+        // walks into its target.
+        std::fs::remove_dir_all(path)
+    }
+
     fn remove_on_reboot_raw(&self, path: &Path) -> io::Result<()> {
         let wide: Vec<u16> = path
             .as_os_str()
@@ -229,8 +235,10 @@ impl KnownFolders for WindowsKnownFolders {
 pub type WindowsEnv = SystemEnv;
 
 fn identity_for(path: &Path) -> io::Result<FileIdentity> {
+    // No data access: attributes and the file index do not need a read handle,
+    // and a zero-access handle keeps the antivirus filter out of the walk.
     let file = std::fs::OpenOptions::new()
-        .read(true)
+        .access_mode(0)
         .custom_flags(FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT)
         .open(path)?;
     let mut info = BY_HANDLE_FILE_INFORMATION::default();

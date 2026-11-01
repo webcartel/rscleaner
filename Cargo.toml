@@ -14,6 +14,9 @@ members = [
   "crates/rscleaner-cli",
   "crates/rscleaner-guard",
   "crates/rscleaner-scan",
+  "crates/rscleaner-report",
+  "crates/rscleaner-exec",
+  "crates/rscleaner-app",
 ]
 exclude = [
   "crates/rscleaner-gui/src-tauri",
@@ -31,6 +34,7 @@ publish = false
 anyhow = "1"
 assert_cmd = "2.2.2"
 clap = { version = "4", features = ["derive"] }
+crossbeam-channel = "0.5"
 directories = "6"
 globset = "0.4"
 insta = "1.49.0"

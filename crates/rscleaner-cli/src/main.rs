@@ -1,5 +1,6 @@
 #![forbid(unsafe_code)]
 
+mod clean;
 mod cli;
 mod commands;
 

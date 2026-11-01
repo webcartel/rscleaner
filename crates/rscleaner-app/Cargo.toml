@@ -1,0 +1,24 @@
+[package]
+name = "rscleaner-app"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+crossbeam-channel.workspace = true
+rscleaner-exec = { path = "../rscleaner-exec" }
+rscleaner-guard = { path = "../rscleaner-guard" }
+rscleaner-model = { path = "../rscleaner-model" }
+rscleaner-platform = { path = "../rscleaner-platform" }
+rscleaner-report = { path = "../rscleaner-report" }
+rscleaner-rules = { path = "../rscleaner-rules" }
+rscleaner-scan = { path = "../rscleaner-scan" }
+thiserror.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

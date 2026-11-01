@@ -22,6 +22,12 @@ pub enum ErrorCode {
     ProtectedTarget,
     UnknownPlatform,
     TargetKind,
+    Io,
+    InUse,
+    Command,
+    Guard,
+    Journal,
+    Cancelled,
 }
 
 impl ErrorCode {
@@ -43,6 +49,12 @@ impl ErrorCode {
             Self::ProtectedTarget => "E_PROTECTED_TARGET",
             Self::UnknownPlatform => "E_UNKNOWN_PLATFORM",
             Self::TargetKind => "E_TARGET_KIND",
+            Self::Io => "E_IO",
+            Self::InUse => "E_IN_USE",
+            Self::Command => "E_COMMAND",
+            Self::Guard => "E_GUARD",
+            Self::Journal => "E_JOURNAL",
+            Self::Cancelled => "E_CANCELLED",
         }
     }
 }
@@ -54,6 +66,9 @@ pub enum WarningCode {
     UnknownToggle,
     UnknownProfile,
     ProtectedTarget,
+    ProcessRunning,
+    NotElevated,
+    CommandSucceeded,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

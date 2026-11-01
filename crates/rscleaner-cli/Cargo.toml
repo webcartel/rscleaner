@@ -17,10 +17,14 @@ path = "src/main.rs"
 anyhow.workspace = true
 clap.workspace = true
 directories.workspace = true
+rscleaner-app = { path = "../rscleaner-app" }
+rscleaner-exec = { path = "../rscleaner-exec" }
 rscleaner-i18n = { path = "../rscleaner-i18n" }
 rscleaner-model = { path = "../rscleaner-model" }
 rscleaner-platform = { path = "../rscleaner-platform" }
+rscleaner-report = { path = "../rscleaner-report" }
 rscleaner-rules = { path = "../rscleaner-rules" }
+rscleaner-scan = { path = "../rscleaner-scan" }
 serde_json.workspace = true
 serde_norway.workspace = true
 

@@ -16,5 +16,14 @@
   "rule.status.skipped": "skipped",
   "rule.status.failed": "failed",
   "rule.status.dry_run": "dry run",
-  "rule.status.not_applicable": "not applicable"
+  "rule.status.not_applicable": "not applicable",
+  "cli.scan.total": "total: {files} files, {bytes} bytes",
+  "cli.clean.confirm": "Proceed with the cleanup? [y/N] ",
+  "cli.clean.summary": "found={found} freed={freed} trashed={trashed} removed={removed} skipped={skipped} failed={failed}",
+  "cli.clean.need_yes": "confirmation is not possible without a terminal; pass --yes",
+  "cli.clean.dangerous": "dangerous rules need --include-dangerous: {rules}",
+  "cli.clean.no_trash_dangerous": "--no-trash cannot be used with a dangerous rule",
+  "cli.clean.on_reboot": "--on-reboot is supported on Windows only",
+  "cli.error.report": "cannot write the report: {error}",
+  "cli.error.plan": "the plan disappeared"
 }

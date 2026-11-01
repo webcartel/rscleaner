@@ -67,7 +67,7 @@ impl FsRemover {
 impl Remover for FsRemover {
     fn remove(&self, path: &VerifiedPath) -> Result<(), GuardError> {
         let first = if path.is_dir {
-            self.fs.remove_dir_raw(path.given())
+            self.fs.remove_tree_raw(path.given())
         } else {
             self.fs.remove_file_raw(path.given())
         };
@@ -84,7 +84,7 @@ impl Remover for FsRemover {
         };
         result.map_err(|error| {
             GuardError::new(
-                GuardReason::Unsupported,
+                remove_reason(&error),
                 format!("cannot remove {}: {error}", path.given().display()),
             )
         })
@@ -106,5 +106,18 @@ impl Remover for FsRemover {
                 format!("cannot defer {}: {error}", path.given().display()),
             )
         })
+    }
+}
+
+/// A busy file is a skip, not a failure: `ERROR_SHARING_VIOLATION` (32) on
+/// Windows, `ETXTBSY` (26) and `EBUSY` (16) on Linux.
+fn remove_reason(error: &std::io::Error) -> GuardReason {
+    match error.raw_os_error() {
+        Some(32) | Some(26) | Some(16) => GuardReason::InUse,
+        _ => match error.kind() {
+            std::io::ErrorKind::NotFound => GuardReason::NotFound,
+            std::io::ErrorKind::PermissionDenied => GuardReason::AccessDenied,
+            _ => GuardReason::Unsupported,
+        },
     }
 }

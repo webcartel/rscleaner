@@ -6,15 +6,18 @@ use rscleaner_model::{
     ByteSize, CancelToken, Item, Mode, PathRepr, Risk, Rule, RuleId, RuleStatus, SkipReason,
     Target, Totals,
 };
-use rscleaner_platform::{FileIdentity, Fs, FsMeta};
+use rscleaner_platform::{Env, FileIdentity, Fs, FsMeta, KnownFolders};
 
 use crate::filter::Filters;
+use crate::pattern;
 
 /// One planned item with the identity taken while scanning.
 #[derive(Clone, Debug)]
 pub struct ScanItem {
     pub item: Item,
     pub identity: FileIdentity,
+    /// The rule context that can re-check this item at clean time.
+    pub ctx: RuleCtx,
 }
 
 /// A path that was left out of the plan and why.
@@ -54,13 +57,17 @@ impl RulePlan {
         });
     }
 
-    fn push(&mut self, item: Item, identity: FileIdentity) {
+    fn push(&mut self, item: Item, identity: FileIdentity, ctx: RuleCtx) {
         self.totals.files = self.totals.files.saturating_add(item.files);
         self.totals.bytes_found = self.totals.bytes_found.saturating_add(item.size_apparent);
         if item.is_dir {
             self.totals.dirs = self.totals.dirs.saturating_add(1);
         }
-        self.items.push(ScanItem { item, identity });
+        self.items.push(ScanItem {
+            item,
+            identity,
+            ctx,
+        });
     }
 
     fn finish(mut self) -> Self {
@@ -107,18 +114,36 @@ impl Plan {
 /// Everything the planner needs: filesystem access, the guard, and a clock.
 pub struct PlanContext<'a> {
     pub fs: &'a dyn Fs,
+    pub env: &'a dyn Env,
+    pub known: &'a dyn KnownFolders,
     pub guard: &'a Guard,
+    pub cwd: PathBuf,
     pub cancel: CancelToken,
     pub now_unix: i64,
+    pub elevated: bool,
 }
 
 impl<'a> PlanContext<'a> {
-    pub fn new(fs: &'a dyn Fs, guard: &'a Guard, cancel: CancelToken, now_unix: i64) -> Self {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        fs: &'a dyn Fs,
+        env: &'a dyn Env,
+        known: &'a dyn KnownFolders,
+        guard: &'a Guard,
+        cwd: PathBuf,
+        cancel: CancelToken,
+        now_unix: i64,
+        elevated: bool,
+    ) -> Self {
         Self {
             fs,
+            env,
+            known,
             guard,
+            cwd,
             cancel,
             now_unix,
+            elevated,
         }
     }
 
@@ -126,6 +151,18 @@ impl<'a> PlanContext<'a> {
         let mut plan = RulePlan::new(rule);
         let mut seen = Seen::default();
         let mut applicable = false;
+
+        if rule.requires_admin && !self.elevated {
+            for target in &rule.targets {
+                if let Target::Path { path, .. } = target {
+                    plan.push_skip(Path::new(path), SkipReason::NeedsAdmin);
+                }
+            }
+            if !plan.skips.is_empty() {
+                plan.status = RuleStatus::Skipped;
+            }
+            return plan;
+        }
 
         for target in &rule.targets {
             if self.cancel.is_cancelled() {
@@ -193,29 +230,46 @@ impl<'a> PlanContext<'a> {
                 return;
             }
         };
-        let verified = match self.guard.verify(target, Intent::Delete, &ctx) {
-            Ok(verified) => verified,
-            Err(error) => {
-                plan.push_skip(target, error.skip_reason());
+
+        let matches = pattern::expand(path, self.env, self.known, &self.cwd, self.fs);
+        if matches.is_empty() {
+            plan.push_skip(target, SkipReason::NotFound);
+            return;
+        }
+
+        for target in matches {
+            if self.cancel.is_cancelled() {
                 return;
             }
-        };
-
-        match mode {
-            Mode::SelfItem => self.plan_self(plan, seen, &verified),
-            Mode::Contents => self.plan_contents(plan, seen, &verified, &filters),
-            Mode::Files => self.plan_files(plan, seen, &verified, &filters),
+            let verified = match self.guard.verify(&target, Intent::Delete, &ctx) {
+                Ok(verified) => verified,
+                Err(error) => {
+                    plan.push_skip(&target, error.skip_reason());
+                    continue;
+                }
+            };
+            match mode {
+                Mode::SelfItem => self.plan_self(plan, seen, &verified, &ctx),
+                Mode::Contents => self.plan_contents(plan, seen, &verified, &filters),
+                Mode::Files => self.plan_files(plan, seen, &verified, &filters),
+            }
         }
     }
 
-    fn plan_self(&self, plan: &mut RulePlan, seen: &mut Seen, verified: &VerifiedPath) {
+    fn plan_self(
+        &self,
+        plan: &mut RulePlan,
+        seen: &mut Seen,
+        verified: &VerifiedPath,
+        ctx: &RuleCtx,
+    ) {
         let Ok(meta) = self.fs.metadata(verified.final_path()) else {
             plan.push_skip(verified.given(), SkipReason::NotFound);
             return;
         };
         let (files, bytes) = self.measure(&meta, verified.final_path(), seen);
         let item = item_of(verified.final_path(), &meta, files, bytes);
-        plan.push(item, meta.identity);
+        plan.push(item, meta.identity, ctx.clone());
     }
 
     fn plan_contents(
@@ -257,7 +311,7 @@ impl<'a> PlanContext<'a> {
             match self.guard.verify(&entry.path, Intent::Delete, &ctx) {
                 Ok(_) => {
                     let item = item_of(&entry.path, &entry.meta, files, bytes);
-                    plan.push(item, entry.meta.identity);
+                    plan.push(item, entry.meta.identity, ctx.clone());
                 }
                 Err(error) => plan.push_skip(&entry.path, error.skip_reason()),
             }
@@ -309,7 +363,7 @@ impl<'a> PlanContext<'a> {
                     Ok(_) => {
                         let (files, bytes) = self.measure(&entry.meta, &entry.path, seen);
                         let item = item_of(&entry.path, &entry.meta, files, bytes);
-                        plan.push(item, entry.meta.identity);
+                        plan.push(item, entry.meta.identity, ctx.clone());
                     }
                     Err(error) => plan.push_skip(&entry.path, error.skip_reason()),
                 }

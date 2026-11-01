@@ -63,3 +63,43 @@ All notable changes to RSCleaner are recorded here.
 ## Unreleased
 
 - M3: scanner, executor, `Engine`, and CLI `scan`/`clean`.
+
+## 0.3.0-m3 — 2026-11-01
+
+### Added
+
+- `rscleaner-scan`: rule targets become a plan. `contents`, `self`, and `files`
+  modes, variable and glob expansion in the declared path, `include`/`exclude`
+  masks, `min_age_days`, `min_size`, and hard links counted once.
+- `rscleaner-report`: report schema 1 with `bytes_found`, `bytes_freed`,
+  `bytes_trashed`, per-rule statuses, and skip and failure entries; an
+  append-only jsonl journal; a generated `schema/report.schema.json`.
+- `rscleaner-exec`: dry run, trash, journal before removal, `requires_closed`
+  and `requires_admin` skips, `InUse` handling with `--on-reboot` deferral on
+  Windows, and `dangerous` rules always going to the trash.
+- `rscleaner-app`: the `Engine` facade with `scan`, `clean`, `plan_items`, a
+  bounded event channel, a cancel token, and the last four plans.
+- CLI `scan` and `clean` with `--profile`, `--rule`, `--dry-run`, `--yes`,
+  `--trash`/`--no-trash`, `--include-dangerous`, `--on-reboot`, `--report`,
+  `--json`, and `--events`; exit codes 0, 1, 2, 3, 4, and 130.
+- Command targets: no shell, an absolute path or a bare name resolved only in
+  trusted system directories, a cleared environment, a timeout, cancellation,
+  and the output in the journal.
+- New runtime error codes: `E_IO`, `E_IN_USE`, `E_COMMAND`, `E_GUARD`,
+  `E_JOURNAL`, and `E_CANCELLED`.
+
+### Fixed
+
+- Missing or denied paths no longer collapse into `NotFound`: a permission
+  error is reported as `AccessDenied`.
+- Windows identity reads use a zero-access handle, which cut the 100,000-file
+  scan from 73 s to 3.5 s.
+
+### Decisions
+
+- Glob components in a `path` target are expanded against the filesystem; a
+  literal suffix after a glob that does not exist is dropped, not reported.
+- The planner reads the declared path components for risk; the executor
+  re-verifies every item immediately before removal.
+- Linux end-to-end CLI tests wait for M5, where the verified Ubuntu rules and
+  the `/tmp` filter rules exist.

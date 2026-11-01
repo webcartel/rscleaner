@@ -54,6 +54,7 @@ pub trait Fs: Send + Sync {
     fn long_path(&self, path: &Path) -> io::Result<PathBuf>;
     fn remove_file_raw(&self, path: &Path) -> io::Result<()>;
     fn remove_dir_raw(&self, path: &Path) -> io::Result<()>;
+    fn remove_tree_raw(&self, path: &Path) -> io::Result<()>;
     fn trash_raw(&self, path: &Path) -> Result<(), TrashError>;
     fn remove_on_reboot_raw(&self, path: &Path) -> io::Result<()>;
 }

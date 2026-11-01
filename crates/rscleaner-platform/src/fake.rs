@@ -211,6 +211,21 @@ impl Fs for FakeFs {
         }
     }
 
+    fn remove_tree_raw(&self, path: &Path) -> io::Result<()> {
+        let mut state = self.state();
+        let key = Self::key(path);
+        if !state.nodes.contains_key(&key) {
+            return Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                "fake path not found",
+            ));
+        }
+        state
+            .nodes
+            .retain(|candidate, _| candidate != &key && !candidate.starts_with(&key));
+        Ok(())
+    }
+
     fn trash_raw(&self, path: &Path) -> Result<(), TrashError> {
         self.remove_file_raw(path)
             .or_else(|_| self.remove_dir_raw(path))

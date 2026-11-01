@@ -4,6 +4,7 @@
 
 pub mod config;
 pub mod error;
+pub mod event;
 pub mod ids;
 pub mod job;
 pub mod localized;
@@ -15,6 +16,7 @@ pub mod scan;
 
 pub use config::{Config, RuleToggle, SpaceConfig, TrashConfig};
 pub use error::{ErrorCode, RuleError, RuleWarning, WarningCode};
+pub use event::{Event, ExecSummary, RuleSummary};
 pub use ids::{RuleId, RuleIdError};
 pub use job::CancelToken;
 pub use localized::Localized;

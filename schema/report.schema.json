@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Report",
+  "description": "The report document. `schema` is always 1.",
+  "type": "object",
+  "properties": {
+    "bytes_found": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "bytes_freed": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "bytes_trashed": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "dry_run": {
+      "type": "boolean"
+    },
+    "engine": {
+      "type": "string"
+    },
+    "finished_unix": {
+      "description": "Finish time in seconds since the Unix epoch.",
+      "type": "integer",
+      "format": "int64"
+    },
+    "pending_reboot": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/PathRepr"
+      }
+    },
+    "platform": {
+      "$ref": "#/$defs/Platform"
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RuleReport"
+      }
+    },
+    "schema": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "size_kind": {
+      "type": "string"
+    },
+    "started_unix": {
+      "description": "Start time in seconds since the Unix epoch.",
+      "type": "integer",
+      "format": "int64"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "platform",
+    "engine",
+    "size_kind",
+    "started_unix",
+    "finished_unix",
+    "dry_run",
+    "bytes_found",
+    "bytes_freed",
+    "bytes_trashed",
+    "pending_reboot",
+    "rules"
+  ],
+  "$defs": {
+    "ErrorCode": {
+      "type": "string",
+      "enum": [
+        "yaml",
+        "schema",
+        "unknown_field",
+        "unknown_var",
+        "empty_targets",
+        "empty_mask",
+        "bad_glob",
+        "duplicate_id",
+        "id_pattern",
+        "platform_when",
+        "registry_user",
+        "risk_understated",
+        "command_disabled",
+        "protected_target",
+        "unknown_platform",
+        "target_kind",
+        "io",
+        "in_use",
+        "command",
+        "guard",
+        "journal",
+        "cancelled"
+      ]
+    },
+    "FailEntry": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "path": {
+          "$ref": "#/$defs/PathRepr"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "code",
+        "detail"
+      ]
+    },
+    "PathRepr": {
+      "type": "object",
+      "properties": {
+        "display": {
+          "type": "string"
+        },
+        "raw_b64": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "display"
+      ]
+    },
+    "Platform": {
+      "type": "string",
+      "enum": [
+        "windows",
+        "linux"
+      ]
+    },
+    "Risk": {
+      "type": "string",
+      "enum": [
+        "safe",
+        "moderate",
+        "dangerous"
+      ]
+    },
+    "RuleReport": {
+      "type": "object",
+      "properties": {
+        "bytes_found": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "bytes_freed": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "bytes_trashed": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FailEntry"
+          }
+        },
+        "id": {
+          "type": "string"
+        },
+        "removed": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "risk": {
+          "$ref": "#/$defs/Risk"
+        },
+        "skipped": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SkipEntry"
+          }
+        },
+        "status": {
+          "$ref": "#/$defs/RuleStatus"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "risk",
+        "bytes_found",
+        "bytes_freed",
+        "bytes_trashed",
+        "removed",
+        "skipped",
+        "failed"
+      ]
+    },
+    "RuleStatus": {
+      "description": "Outcome of one rule in a plan or a report.",
+      "type": "string",
+      "enum": [
+        "done",
+        "skipped",
+        "failed",
+        "dry_run",
+        "not_applicable"
+      ]
+    },
+    "SkipEntry": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/PathRepr"
+        },
+        "reason": {
+          "$ref": "#/$defs/SkipReason"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "reason"
+      ]
+    },
+    "SkipReason": {
+      "description": "Why an item or a whole rule was left out of the plan or the run.",
+      "type": "string",
+      "enum": [
+        "in_use",
+        "access_denied",
+        "protected",
+        "app_running",
+        "needs_admin",
+        "os_too_old",
+        "not_found",
+        "not_applicable",
+        "changed_since_scan",
+        "cloud_placeholder",
+        "unsupported_here"
+      ]
+    }
+  }
+}

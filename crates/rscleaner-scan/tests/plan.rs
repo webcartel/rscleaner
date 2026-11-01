@@ -1,3 +1,5 @@
+#![cfg(windows)]
+
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::Arc;
@@ -68,7 +70,22 @@ fn path_target(path: &str, mode: Mode) -> Target {
 }
 
 fn plan(guard: &Guard, fs: &Arc<FakeFs>, rule: &Rule) -> RulePlan {
-    let context = PlanContext::new(fs.as_ref(), guard, CancelToken::new(), NOW);
+    let env = FakeEnv::from([
+        ("SYSTEMROOT", r"C:\Windows"),
+        ("USERPROFILE", r"C:\Users\Me"),
+        ("LOCALAPPDATA", r"C:\Users\Me\AppData\Local"),
+    ]);
+    let known = FakeKnownFolders::default();
+    let context = PlanContext::new(
+        fs.as_ref(),
+        &env,
+        &known,
+        guard,
+        PathBuf::from(r"C:\Users\Me"),
+        CancelToken::new(),
+        NOW,
+        true,
+    );
     context.plan_rule(rule)
 }
 
@@ -194,7 +211,18 @@ fn a_cancelled_scan_adds_no_items() {
 
     let cancel = CancelToken::new();
     cancel.cancel();
-    let context = PlanContext::new(fs.as_ref(), &guard, cancel, NOW);
+    let env = FakeEnv::from([("USERPROFILE", r"C:\Users\Me")]);
+    let known = FakeKnownFolders::default();
+    let context = PlanContext::new(
+        fs.as_ref(),
+        &env,
+        &known,
+        &guard,
+        PathBuf::from(r"C:\Users\Me"),
+        cancel,
+        NOW,
+        true,
+    );
     let plan = context.plan_rule(&rule(vec![path_target(r"C:\Temp\cache", Mode::Contents)]));
 
     assert!(plan.items.is_empty());
