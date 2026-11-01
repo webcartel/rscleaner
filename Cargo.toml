@@ -5,6 +5,9 @@ members = [
   "bench/scan",
   "bench/delete",
 ]
+exclude = [
+  "crates/rscleaner-gui/src-tauri",
+]
 
 [workspace.package]
 version = "0.1.0"
