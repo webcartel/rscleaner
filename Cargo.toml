@@ -3,6 +3,7 @@ resolver = "3"
 members = [
   "bench/gen",
   "bench/scan",
+  "bench/delete",
 ]
 
 [workspace.package]

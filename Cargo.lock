@@ -162,6 +162,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "rscleaner-bench-delete"
+version = "0.1.0"
+dependencies = [
+ "rayon",
+ "serde_json",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
 name = "rscleaner-bench-gen"
 version = "0.1.0"
 dependencies = [
