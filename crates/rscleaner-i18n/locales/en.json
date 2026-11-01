@@ -1,0 +1,20 @@
+{
+  "app.name": "RSCleaner",
+  "cli.version": "RSCleaner {version} ({platform})",
+  "cli.list": "Rules and profiles",
+  "cli.rules.validate": "Validate rule files",
+  "cli.rules.show": "Show a rule with expanded paths",
+  "cli.config.path": "Show configuration paths",
+  "cli.error.usage": "Invalid command line",
+  "cli.error.rules": "Rule validation failed",
+  "risk.safe": "safe",
+  "risk.moderate": "moderate",
+  "risk.dangerous": "dangerous",
+  "platform.windows": "Windows",
+  "platform.linux": "Linux",
+  "rule.status.done": "done",
+  "rule.status.skipped": "skipped",
+  "rule.status.failed": "failed",
+  "rule.status.dry_run": "dry run",
+  "rule.status.not_applicable": "not applicable"
+}

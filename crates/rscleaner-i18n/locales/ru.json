@@ -1,0 +1,20 @@
+{
+  "app.name": "RSCleaner",
+  "cli.version": "RSCleaner {version} ({platform})",
+  "cli.list": "Правила и профили",
+  "cli.rules.validate": "Проверить файлы правил",
+  "cli.rules.show": "Показать правило с раскрытыми путями",
+  "cli.config.path": "Показать пути конфигурации",
+  "cli.error.usage": "Неверная командная строка",
+  "cli.error.rules": "Проверка правил не прошла",
+  "risk.safe": "безопасно",
+  "risk.moderate": "умеренно",
+  "risk.dangerous": "опасно",
+  "platform.windows": "Windows",
+  "platform.linux": "Linux",
+  "rule.status.done": "готово",
+  "rule.status.skipped": "пропущено",
+  "rule.status.failed": "ошибка",
+  "rule.status.dry_run": "пробный прогон",
+  "rule.status.not_applicable": "не применимо"
+}
