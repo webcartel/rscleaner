@@ -22,3 +22,11 @@ jobs:
       - run: cargo deny check
       - run: cargo install cargo-audit --locked
       - run: cargo audit
+
+  fuzz:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - run: cargo install cargo-fuzz --locked
+      - run: cargo +nightly fuzz run normalize -- -max_total_time=60
