@@ -1,0 +1,14 @@
+schema: 1
+rules:
+  - id: linux.logs.rotated
+    name: Rotated system logs
+    description: Compressed and numbered logs older than two weeks. The active log stays.
+    category: system
+    risk: moderate
+    platforms: [linux]
+    requires_admin: true
+    targets:
+      - path: /var/log
+        mode: files
+        include: ['*.gz', '*.old', '*.[0-9]']
+        min_age_days: 14

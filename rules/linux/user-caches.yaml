@@ -1,0 +1,23 @@
+schema: 1
+rules:
+  - id: linux.cache.go-build
+    name: Go build cache
+    description: Compiled Go packages. The next build recreates them.
+    category: dev
+    risk: safe
+    tags: [dev]
+    platforms: [linux]
+    targets:
+      - path: ${XDG_CACHE_HOME}/go-build
+        mode: contents
+
+  - id: linux.cache.cargo
+    name: Cargo registry cache
+    description: Downloaded crate archives. Cargo fetches them again when needed.
+    category: dev
+    risk: safe
+    tags: [dev]
+    platforms: [linux]
+    targets:
+      - path: ${HOME}/.cargo/registry/cache
+        mode: contents

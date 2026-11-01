@@ -1,0 +1,25 @@
+schema: 1
+rules:
+  - id: linux.tmp.old
+    name: Old files in /tmp
+    description: Temporary files older than a week. Running programs keep their own open files.
+    category: system
+    risk: moderate
+    platforms: [linux]
+    requires_admin: true
+    targets:
+      - path: /tmp
+        mode: contents
+        min_age_days: 7
+
+  - id: linux.var-tmp.old
+    name: Old files in /var/tmp
+    description: Temporary files older than a week that survive a reboot.
+    category: system
+    risk: moderate
+    platforms: [linux]
+    requires_admin: true
+    targets:
+      - path: /var/tmp
+        mode: contents
+        min_age_days: 7

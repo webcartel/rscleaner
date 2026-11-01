@@ -1,0 +1,11 @@
+schema: 1
+rules:
+  - id: linux.trash.contents
+    name: Trash contents
+    description: Files already moved to the FreeDesktop trash. Emptying it frees the space.
+    category: system
+    risk: moderate
+    platforms: [linux]
+    targets:
+      - path: ${XDG_DATA_HOME}/Trash
+        mode: contents

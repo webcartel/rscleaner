@@ -104,6 +104,8 @@ fn is_known_env(name: &str) -> bool {
             | "PROGRAMDATA"
             | "USERPROFILE"
             | "SYSTEMROOT"
+            | "SYSTEMDRIVE"
+            | "WINDIR"
             | "TEMP"
             | "TMPDIR"
             | "PROGRAMFILES"

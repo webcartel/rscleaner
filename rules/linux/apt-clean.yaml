@@ -1,0 +1,14 @@
+schema: 1
+rules:
+  - id: linux.apt.clean
+    name: APT package cache
+    description: Cached .deb packages. APT downloads them again when needed.
+    category: system
+    risk: moderate
+    platforms: [linux]
+    when: { command_exists: [apt-get] }
+    requires_admin: true
+    targets:
+      - kind: command
+        cmd: apt-get
+        args: [clean]

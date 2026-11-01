@@ -2,6 +2,7 @@
 
 //! Rule loading, validation, merging, profiles, and configuration.
 
+pub mod builtin;
 pub mod error;
 pub mod glob;
 pub mod load;

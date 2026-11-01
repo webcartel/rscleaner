@@ -1,0 +1,13 @@
+schema: 1
+rules:
+  - id: dev.docker-prune
+    name: Docker system prune
+    description: Docker removes stopped containers and dangling images. Protects itself against a wrong answer, but the containers do not come back, so ask for it by name.
+    category: dev
+    risk: dangerous
+    platforms: [windows]
+    tags: [dev]
+    targets:
+      - kind: command
+        cmd: docker
+        args: ['system', 'prune', '-f']
