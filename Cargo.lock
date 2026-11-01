@@ -742,6 +742,7 @@ dependencies = [
  "serde_json",
  "serde_norway",
  "tempfile",
+ "thiserror",
 ]
 
 [[package]]
