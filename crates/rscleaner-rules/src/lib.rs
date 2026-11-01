@@ -6,5 +6,6 @@ pub mod error;
 pub mod glob;
 pub mod load;
 pub mod schema;
+pub mod set;
 pub mod validate;
 pub mod vars;
