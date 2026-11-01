@@ -21,6 +21,8 @@ rscleaner-i18n = { path = "../rscleaner-i18n" }
 rscleaner-model = { path = "../rscleaner-model" }
 rscleaner-platform = { path = "../rscleaner-platform" }
 rscleaner-rules = { path = "../rscleaner-rules" }
+serde_json.workspace = true
+serde_norway.workspace = true
 
 [dev-dependencies]
 assert_cmd.workspace = true
