@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use directories::ProjectDirs;
+use directories::BaseDirs;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AppPaths {
@@ -14,7 +14,7 @@ pub struct AppPaths {
 #[derive(Debug, thiserror::Error)]
 pub enum PathError {
     #[error("cannot determine the application data directories")]
-    NoProjectDirs,
+    NoBaseDirs,
     #[error("cannot determine the executable path")]
     NoExecutable,
 }
@@ -30,23 +30,34 @@ pub fn resolve(data_dir: Option<&Path>, portable: bool) -> Result<AppPaths, Path
         return Ok(portable_paths(&parent.join("data")));
     }
 
-    let dirs = ProjectDirs::from("", "", "RSCleaner").ok_or(PathError::NoProjectDirs)?;
-    let config =
-        env_path("RSCLEANER_CONFIG").unwrap_or_else(|| dirs.config_dir().join("config.yaml"));
-    let rules = env_path("RSCLEANER_RULES_DIR").unwrap_or_else(|| dirs.config_dir().join("rules"));
-    let logs = dirs
+    let base = BaseDirs::new().ok_or(PathError::NoBaseDirs)?;
+    let app = if cfg!(windows) {
+        "RSCleaner"
+    } else {
+        "rscleaner"
+    };
+
+    let config_root = base.config_dir().join(app);
+    let data_root = base.data_local_dir().join(app);
+    let cache_root = if cfg!(windows) {
+        data_root.join("cache")
+    } else {
+        base.cache_dir().join(app)
+    };
+    let state_root = base
         .state_dir()
-        .unwrap_or_else(|| dirs.data_local_dir())
-        .join("logs");
-    let cache = dirs.cache_dir().to_path_buf();
-    let registry_backups = dirs.data_local_dir().join("registry-backups");
+        .map(|path| path.join(app))
+        .unwrap_or_else(|| data_root.clone());
+
+    let config = env_path("RSCLEANER_CONFIG").unwrap_or_else(|| config_root.join("config.yaml"));
+    let rules = env_path("RSCLEANER_RULES_DIR").unwrap_or_else(|| config_root.join("rules"));
 
     Ok(AppPaths {
         config,
         rules,
-        logs,
-        cache,
-        registry_backups,
+        logs: state_root.join("logs"),
+        cache: cache_root,
+        registry_backups: data_root.join("registry-backups"),
     })
 }
 

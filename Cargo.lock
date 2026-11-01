@@ -702,6 +702,8 @@ dependencies = [
  "rscleaner-model",
  "rscleaner-platform",
  "rscleaner-rules",
+ "serde_json",
+ "serde_norway",
  "tempfile",
 ]
 

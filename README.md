@@ -25,6 +25,8 @@ Windows.
 ```sh
 cargo build --release
 cargo run -p rscleaner-cli -- version
+cargo run -p rscleaner-cli -- list
+cargo run -p rscleaner-cli -- rules validate rules
 ```
 
 The GUI build will be documented after the M0 spike. The CLI and TUI do not
