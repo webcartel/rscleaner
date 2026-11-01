@@ -1,0 +1,9 @@
+schema: 1
+rules:
+  - id: test.rule
+    name: Test rule
+    category: test
+    risk: safe
+    platforms: [windows]
+    targets:
+      - path: C:/Temp
