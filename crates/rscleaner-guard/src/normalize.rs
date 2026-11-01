@@ -100,7 +100,8 @@ fn expand_text(text: &str, env: &dyn Env, known: &dyn KnownFolders) -> Result<St
         .ok_or_else(|| GuardError::new(GuardReason::InvalidPath, "unterminated variable"))?;
         let name = &after[..end];
         output.push_str(&resolve_variable(name, env, known)?);
-        rest = &after[end + kind.len()..];
+        // The closing delimiter is one byte: `}` for `${...}`, `%` for `%...%`.
+        rest = &after[end + 1..];
     }
 
     Ok(output)
