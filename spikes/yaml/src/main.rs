@@ -40,25 +40,6 @@ pub fn parse_rule_file(path: &str) -> Result<RuleFile, ParseError> {
     })
 }
 
-#[cfg(all(feature = "ng", not(feature = "norway")))]
-pub fn parse_rule_file(path: &str) -> Result<RuleFile, ParseError> {
-    let text = std::fs::read_to_string(path).map_err(|error| ParseError {
-        file: path.to_string(),
-        line: 1,
-        column: 1,
-        message: error.to_string(),
-    })?;
-    serde_yaml_ng::from_str(&text).map_err(|error| {
-        let location = error.location();
-        ParseError {
-            file: path.to_string(),
-            line: location.as_ref().map(|value| value.line()).unwrap_or(1),
-            column: location.as_ref().map(|value| value.column()).unwrap_or(1),
-            message: error.to_string(),
-        }
-    })
-}
-
 fn main() {
     if std::env::args().any(|argument| argument == "--schema") {
         match serde_json::to_string_pretty(&schemars::schema_for!(RuleFile)) {
