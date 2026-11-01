@@ -43,6 +43,10 @@ impl Fs for LinuxFs {
         })
     }
 
+    fn read_link(&self, path: &Path) -> io::Result<PathBuf> {
+        std::fs::read_link(path)
+    }
+
     fn read_dir(&self, path: &Path) -> io::Result<Vec<DirEntry>> {
         let mut entries = Vec::new();
         for entry in std::fs::read_dir(path)? {

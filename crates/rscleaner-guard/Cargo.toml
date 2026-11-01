@@ -1,0 +1,19 @@
+[package]
+name = "rscleaner-guard"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+rscleaner-model = { path = "../rscleaner-model" }
+rscleaner-platform = { path = "../rscleaner-platform" }
+thiserror.workspace = true
+
+[dev-dependencies]
+proptest = "1"
+tempfile.workspace = true

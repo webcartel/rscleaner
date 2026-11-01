@@ -8,6 +8,7 @@ use crate::fs::{DirEntry, FileIdentity, Fs, FsMeta, TrashError, VolumeKind};
 #[derive(Clone, Debug)]
 struct FakeNode {
     meta: FsMeta,
+    link_target: Option<PathBuf>,
 }
 
 #[derive(Clone, Debug)]
@@ -33,13 +34,20 @@ impl FakeFs {
         }
     }
 
+    fn key(path: &Path) -> PathBuf {
+        let text = path.to_string_lossy();
+        text.strip_prefix("\\\\?\\")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| path.to_path_buf())
+    }
+
     pub fn add_file(&self, path: &Path, bytes: &[u8], identity_volume: u64) {
         let mut state = self.state();
         let volume = state.volume;
         let file = state.next_file;
         state.next_file += 1;
         state.nodes.insert(
-            path.to_path_buf(),
+            Self::key(path),
             FakeNode {
                 meta: FsMeta {
                     len: bytes.len() as u64,
@@ -54,6 +62,7 @@ impl FakeFs {
                     },
                     volume,
                 },
+                link_target: None,
             },
         );
     }
@@ -64,7 +73,7 @@ impl FakeFs {
         let file = state.next_file;
         state.next_file += 1;
         state.nodes.insert(
-            path.to_path_buf(),
+            Self::key(path),
             FakeNode {
                 meta: FsMeta {
                     len: 0,
@@ -76,17 +85,18 @@ impl FakeFs {
                     identity: FileIdentity { volume: 0, file },
                     volume,
                 },
+                link_target: None,
             },
         );
     }
 
-    pub fn add_symlink(&self, path: &Path) {
+    pub fn add_symlink(&self, path: &Path, target: &Path) {
         let mut state = self.state();
         let volume = state.volume;
         let file = state.next_file;
         state.next_file += 1;
         state.nodes.insert(
-            path.to_path_buf(),
+            Self::key(path),
             FakeNode {
                 meta: FsMeta {
                     len: 0,
@@ -98,6 +108,7 @@ impl FakeFs {
                     identity: FileIdentity { volume: 0, file },
                     volume,
                 },
+                link_target: Some(target.to_path_buf()),
             },
         );
     }
@@ -115,17 +126,27 @@ impl Fs for FakeFs {
         let state = self.state();
         state
             .nodes
-            .get(path)
+            .get(&Self::key(path))
             .map(|node| node.meta.clone())
             .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "fake path not found"))
     }
 
+    fn read_link(&self, path: &Path) -> io::Result<PathBuf> {
+        let state = self.state();
+        state
+            .nodes
+            .get(&Self::key(path))
+            .and_then(|node| node.link_target.clone())
+            .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "fake link not found"))
+    }
+
     fn read_dir(&self, path: &Path) -> io::Result<Vec<DirEntry>> {
         let state = self.state();
+        let parent = Self::key(path);
         Ok(state
             .nodes
             .iter()
-            .filter(|(candidate, _)| candidate.parent() == Some(path))
+            .filter(|(candidate, _)| candidate.parent() == Some(parent.as_path()))
             .map(|(candidate, node)| DirEntry {
                 path: candidate.clone(),
                 meta: node.meta.clone(),
@@ -139,9 +160,10 @@ impl Fs for FakeFs {
 
     fn remove_file_raw(&self, path: &Path) -> io::Result<()> {
         let mut state = self.state();
-        match state.nodes.get(path) {
+        let key = Self::key(path);
+        match state.nodes.get(&key) {
             Some(node) if !node.meta.is_dir => {
-                state.nodes.remove(path);
+                state.nodes.remove(&key);
                 Ok(())
             }
             Some(_) => Err(io::Error::new(io::ErrorKind::IsADirectory, "not a file")),
@@ -154,9 +176,10 @@ impl Fs for FakeFs {
 
     fn remove_dir_raw(&self, path: &Path) -> io::Result<()> {
         let mut state = self.state();
-        match state.nodes.get(path) {
+        let key = Self::key(path);
+        match state.nodes.get(&key) {
             Some(node) if node.meta.is_dir => {
-                state.nodes.remove(path);
+                state.nodes.remove(&key);
                 Ok(())
             }
             Some(_) => Err(io::Error::new(

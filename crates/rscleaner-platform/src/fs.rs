@@ -49,6 +49,7 @@ impl std::error::Error for TrashError {}
 
 pub trait Fs: Send + Sync {
     fn metadata(&self, path: &Path) -> io::Result<FsMeta>;
+    fn read_link(&self, path: &Path) -> io::Result<PathBuf>;
     fn read_dir(&self, path: &Path) -> io::Result<Vec<DirEntry>>;
     fn long_path(&self, path: &Path) -> io::Result<PathBuf>;
     fn remove_file_raw(&self, path: &Path) -> io::Result<()>;

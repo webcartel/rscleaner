@@ -12,6 +12,7 @@ members = [
   "crates/rscleaner-rules",
   "crates/rscleaner-i18n",
   "crates/rscleaner-cli",
+  "crates/rscleaner-guard",
 ]
 exclude = [
   "crates/rscleaner-gui/src-tauri",
