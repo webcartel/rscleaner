@@ -40,6 +40,20 @@ impl GuardError {
             message: message.into(),
         }
     }
+
+    /// The plan and report reason for a refused path.
+    pub fn skip_reason(&self) -> rscleaner_model::SkipReason {
+        match self.reason {
+            GuardReason::Protected => rscleaner_model::SkipReason::Protected,
+            GuardReason::NotFixedVolume => rscleaner_model::SkipReason::UnsupportedHere,
+            GuardReason::NotFound => rscleaner_model::SkipReason::NotFound,
+            GuardReason::AccessDenied => rscleaner_model::SkipReason::AccessDenied,
+            GuardReason::InvalidPath => rscleaner_model::SkipReason::NotApplicable,
+            GuardReason::Unsupported => rscleaner_model::SkipReason::UnsupportedHere,
+            GuardReason::ChangedSinceScan => rscleaner_model::SkipReason::ChangedSinceScan,
+            GuardReason::CloudPlaceholder => rscleaner_model::SkipReason::CloudPlaceholder,
+        }
+    }
 }
 
 impl fmt::Display for GuardError {

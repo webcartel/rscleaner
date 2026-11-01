@@ -1,4 +1,5 @@
 use std::fmt;
+use std::path::Path;
 
 use schemars::JsonSchema;
 use serde::de::{self, Deserializer};
@@ -13,6 +14,19 @@ use crate::risk::Risk;
 pub struct PathRepr {
     pub display: String,
     pub raw_b64: Option<String>,
+}
+
+impl PathRepr {
+    pub fn text(value: impl Into<String>) -> Self {
+        Self {
+            display: value.into(),
+            raw_b64: None,
+        }
+    }
+
+    pub fn from_path(path: &Path) -> Self {
+        Self::text(path.to_string_lossy())
+    }
 }
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

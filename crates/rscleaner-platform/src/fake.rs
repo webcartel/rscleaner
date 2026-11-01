@@ -67,6 +67,24 @@ impl FakeFs {
         );
     }
 
+    pub fn add_hard_link(&self, path: &Path, existing: &Path) {
+        let mut state = self.state();
+        let Some(node) = state.nodes.get(&Self::key(existing)).cloned() else {
+            return;
+        };
+        state.nodes.insert(Self::key(path), node);
+    }
+
+    pub fn set_modified(&self, path: &Path, unix_seconds: i64) {
+        let mut state = self.state();
+        let key = Self::key(path);
+        if let Some(node) = state.nodes.get_mut(&key) {
+            node.meta.modified = std::time::UNIX_EPOCH.checked_add(std::time::Duration::from_secs(
+                u64::try_from(unix_seconds).unwrap_or(0),
+            ));
+        }
+    }
+
     pub fn add_dir(&self, path: &Path) {
         let mut state = self.state();
         let volume = state.volume;

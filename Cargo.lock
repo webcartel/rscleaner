@@ -876,6 +876,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rscleaner-scan"
+version = "0.1.0"
+dependencies = [
+ "globset",
+ "rscleaner-guard",
+ "rscleaner-model",
+ "rscleaner-platform",
+ "tempfile",
+]
+
+[[package]]
 name = "rscleaner-spike-trash"
 version = "0.1.0"
 dependencies = [
