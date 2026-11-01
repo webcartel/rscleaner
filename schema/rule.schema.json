@@ -1,0 +1,359 @@
+{
+  "$defs": {
+    "ByteSize": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "Localized": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      ]
+    },
+    "Mode": {
+      "enum": [
+        "contents",
+        "self",
+        "files"
+      ],
+      "type": "string"
+    },
+    "Platform": {
+      "enum": [
+        "windows",
+        "linux"
+      ],
+      "type": "string"
+    },
+    "Risk": {
+      "enum": [
+        "safe",
+        "moderate",
+        "dangerous"
+      ],
+      "type": "string"
+    },
+    "Rule": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "default_enabled": {
+          "default": false,
+          "type": "boolean"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Localized"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "$ref": "#/$defs/Localized"
+        },
+        "os_min_build": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "platforms": {
+          "items": {
+            "$ref": "#/$defs/Platform"
+          },
+          "type": "array"
+        },
+        "requires_admin": {
+          "default": false,
+          "type": "boolean"
+        },
+        "requires_closed": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "risk": {
+          "$ref": "#/$defs/Risk"
+        },
+        "tags": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/Target"
+          },
+          "type": "array"
+        },
+        "trash": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "when": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/When"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "category",
+        "risk",
+        "platforms",
+        "targets"
+      ],
+      "type": "object"
+    },
+    "Target": {
+      "oneOf": [
+        {
+          "properties": {
+            "exclude": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "include": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "kind": {
+              "const": "path",
+              "type": "string"
+            },
+            "min_age_days": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "min_size": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ByteSize"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "mode": {
+              "$ref": "#/$defs/Mode",
+              "default": "contents"
+            },
+            "path": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "path"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "exclude": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "has_sibling": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "kind": {
+              "const": "find",
+              "type": "string"
+            },
+            "max_depth": {
+              "format": "uint8",
+              "maximum": 255,
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "min_age_days": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "name": {
+              "type": "string"
+            },
+            "roots": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "kind",
+            "name"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "args": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "cmd": {
+              "type": "string"
+            },
+            "kind": {
+              "const": "command",
+              "type": "string"
+            },
+            "timeout_s": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "cmd"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "check": {
+              "type": "string"
+            },
+            "hive": {
+              "type": "string"
+            },
+            "key": {
+              "type": "string"
+            },
+            "kind": {
+              "const": "registry",
+              "type": "string"
+            },
+            "value": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "check",
+            "hive",
+            "key"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "When": {
+      "additionalProperties": false,
+      "properties": {
+        "command_exists": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "distro": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "path_exists": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "rules": {
+      "items": {
+        "$ref": "#/$defs/Rule"
+      },
+      "type": "array"
+    },
+    "schema": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema",
+    "rules"
+  ],
+  "title": "RuleFile",
+  "type": "object"
+}
