@@ -1,0 +1,14 @@
+/target/
+/AGENTS.md
+/agent-docs/
+/.agents/
+/.superpowers/
+/docs/plans/
+/docs/decisions.md
+/docs/superpowers/
+*.bak.*
+*.tmp
+.DS_Store
+Thumbs.db
+node_modules/
+dist/
